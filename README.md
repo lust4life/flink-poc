@@ -1,6 +1,6 @@
 # build docker img
 
-- run `docker build . -t pydemo:latest -f pydemo.dockerfile --platform linux/amd64`
+- run `docker build . -t pydemo:latest -f pydemo.dockerfile`
 
 # demo.sql
 

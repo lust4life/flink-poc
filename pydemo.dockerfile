@@ -35,11 +35,10 @@ ln -s /usr/local/bin/python3 /usr/local/bin/python && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
 
+# fix pemja install by reinstall jdk to make sure include folder in java-home folder
+run apt-get update && apt install openjdk-11-jdk -y
+run cp -r /usr/lib/jvm/java-11-openjdk-arm64/include /opt/java/openjdk/include
+
 # install PyFlink
 RUN pip3 install "apache-flink>=1.16.0,<1.17.0"
 RUN pip3 install easy_sql-easy_sql[cli]
-
-# add python script
-USER flink
-RUN mkdir /opt/flink/usrlib
-# ADD test.py /opt/flink/usrlib/test.py

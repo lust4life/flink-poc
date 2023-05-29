@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 psycopg2 = "^2.9.6"
+easy-sql-easy-sql = {extras = ["cli"], version = "^1.0.0"}
 
 
 [build-system]

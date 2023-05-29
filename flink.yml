@@ -53,3 +53,32 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         rest.address: jobmanager
+
+  demo:
+    image: pydemo:latest
+    command: [
+        "bin/flink",
+        "run",
+        "-pyclientexec",
+        "/usr/local/bin/python3",
+        "-pym",
+        "easy_sql.data_process",
+        # "-py",
+        # "/opt/flink/usrlib/test.py",
+        "-f",
+        "/opt/flink/usrlib/demo-easy-v1.sql",
+      ]
+    depends_on:
+      - taskmanager
+      - postgres
+    volumes:
+      - ./flink-userlib/:/opt/flink/lib/userlib/
+      - ./paimon-db:/opt/flink/paimon
+      - ./demo-easy-v1.sql:/opt/flink/usrlib/demo-easy-v1.sql
+      - ./test.py:/opt/flink/usrlib/test.py
+      - ./catalog.json:/opt/flink/usrlib/catalog.json
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager

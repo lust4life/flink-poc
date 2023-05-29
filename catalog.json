@@ -1,0 +1,117 @@
+{
+    "catalogs": [
+        {
+            "name": "paimon",
+            "type": "paimon",
+            "warehouse": "file:///opt/flink/paimon"
+        }
+    ],
+    "databases": [
+        {
+            "name": "pg_cdc",
+            "connectors": [
+                {
+                    "name": "connector_cdc",
+                    "options": {
+                        "connector": "postgres-cdc",
+                        "hostname": "postgres",
+                        "port": "5432",
+                        "username": "postgres",
+                        "password": "postgres",
+                        "database-name": "postgres",
+                        "schema-name": "public",
+                        "decoding.plugin.name": "pgoutput"
+                    }
+                }
+            ],
+            "tables": [
+                {
+                    "name": "orders",
+                    "connector": {
+                        "name": "connector_cdc",
+                        "options": {
+                            "table-name": "orders",
+                            "slot.name": "orders"
+                        }
+                    },
+                    "schema": [
+                        "order_id STRING",
+                        "product_id STRING",
+                        "customer_id STRING",
+                        "purchase_timestamp TIMESTAMP_LTZ",
+                        "PRIMARY KEY (order_id) NOT ENFORCED"
+                    ]
+                },
+                {
+                    "name": "products",
+                    "connector": {
+                        "name": "connector_cdc",
+                        "options": {
+                            "table-name": "products",
+                            "slot.name": "products"
+                        }
+                    },
+                    "schema": [
+                        "product_id STRING",
+                        "product_name STRING",
+                        "sale_price INT",
+                        "product_rating DOUBLE",
+                        "ts TIMESTAMP_LTZ(3) METADATA FROM 'op_ts' VIRTUAL"
+                    ]
+                },
+                {
+                    "name": "customers",
+                    "connector": {
+                        "name": "connector_cdc",
+                        "options": {
+                            "table-name": "customers",
+                            "slot.name": "customers"
+                        }
+                    },
+                    "schema": [
+                        "customer_id STRING",
+                        "customer_name STRING",
+                        "ts TIMESTAMP_LTZ(3) METADATA FROM 'op_ts' VIRTUAL"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ods",
+            "connectors": [
+                {
+                    "name": "paimon",
+                    "options": {
+                        "connector": "paimon",
+                        "path": "file:///opt/flink/paimon",
+                        "auto-create": "true"
+                    }
+                }
+            ],
+            "tables": [
+                {
+                    "name": "orders",
+                    "connector": {
+                        "name": "paimon",
+                        "options": {
+                            "changelog-producer": "input"
+                        }
+                    },
+                    "partition_by": [
+                        "dd",
+                        "hh"
+                    ],
+                    "schema": [
+                        "order_id STRING",
+                        "product_id STRING",
+                        "customer_id STRING",
+                        "purchase_timestamp TIMESTAMP_LTZ",
+                        "dd STRING",
+                        "hh INT",
+                        "PRIMARY KEY (order_id, dd, hh) NOT ENFORCED"
+                    ]
+                }
+            ]
+        }
+    ]
+}

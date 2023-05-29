@@ -1,6 +1,7 @@
 -- backend: flink
 -- config: easy_sql.etl_type=streaming
 -- config: easy_sql.flink_tables_file_path=/opt/flink/usrlib/catalog.json
+-- config: flink.pipeline.jars=/opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;/opt/flink/lib/userlib/flink-sql-connector-postgres-cdc-2.3.0.jar;/opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
 -- config: flink.execution.checkpointing.interval=10 s
 
 -- inputs: pg_cdc.orders,pg_cdc.products,pg_cdc.customers,ods.orders,ods.products,ods.customers,dwd.order_enriched,dws.product_sales_by_hh
@@ -10,7 +11,6 @@ insert into ods.orders select *, DATE_FORMAT(purchase_timestamp, 'yyyy-MM-dd') a
 
 -- target=action.ingest_ods_produts
 insert into ods.products select * from pg_cdc.products;
-
 
 -- target=action.ingest_ods_customers
 insert into ods.customers select * from pg_cdc.customers;

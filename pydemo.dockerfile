@@ -42,5 +42,4 @@ RUN pip3 install easy_sql-easy_sql[cli]
 # add python script
 USER flink
 RUN mkdir /opt/flink/usrlib
-ADD easy.sql /opt/flink/usrlib/easy.sql
-ADD test.py /opt/flink/usrlib/test.py
+# ADD test.py /opt/flink/usrlib/test.py

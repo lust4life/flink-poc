@@ -1,6 +1,8 @@
 -- backend: flink
 -- config: easy_sql.etl_type=streaming
+-- config: flink.pipeline.jars=/opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;/opt/flink/lib/userlib/flink-sql-connector-postgres-cdc-2.3.0.jar;/opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
 -- config: flink.execution.checkpointing.interval=10 s
+
 
 -- target=action
 CREATE CATALOG paimon WITH (

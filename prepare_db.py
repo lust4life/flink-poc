@@ -9,7 +9,7 @@ def prepare_orders(cur):
             order_id           varchar(50) not null primary key,
             product_id         varchar(50),
             customer_id        varchar(50),
-            purchase_timestamp timestamp
+            purchase_timestamp timestamptz
         );
 
         ALTER TABLE public.orders REPLICA IDENTITY FULL;
@@ -20,6 +20,8 @@ def prepare_orders(cur):
     any = cur.fetchone()
     if any:
         return
+
+    return
 
     with open("./data/orders.csv", "r") as f:
         next(f)  # Skip the header row.
@@ -46,9 +48,36 @@ def prepare_products(cur):
     if any:
         return
 
+    return
+
     with open("./data/products.csv", "r") as f:
         next(f)  # Skip the header row.
         cur.copy_from(f, "products", sep=",")
+
+
+def prepare_customers(cur):
+    cur.execute(
+        """
+        create table if not exists customers
+        (
+            customer_id     varchar(50) not null primary key,
+            customer_name   varchar(50)
+        );
+
+        ALTER TABLE public.customers REPLICA IDENTITY FULL;
+        """
+    )
+
+    cur.execute("SELECT * FROM customers limit 1")
+    any = cur.fetchone()
+    if any:
+        return
+
+    return
+
+    with open("./data/customers.csv", "r") as f:
+        next(f)  # Skip the header row.
+        cur.copy_from(f, "customers", sep=",")
 
 
 if __name__ == "__main__":
@@ -60,6 +89,7 @@ if __name__ == "__main__":
     try:
         prepare_orders(cur)
         prepare_products(cur)
+        prepare_customers(cur)
         conn.commit()
     except Exception as e:
         print(e)

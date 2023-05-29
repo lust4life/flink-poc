@@ -1,5 +1,6 @@
 -- backend: flink
 -- config: easy_sql.etl_type=streaming
+-- config: flink.execution.checkpointing.interval=10 s
 
 -- target=action
 CREATE CATALOG paimon WITH (
@@ -11,8 +12,6 @@ CREATE CATALOG paimon WITH (
 USE CATALOG paimon;
 
 -- target=action
--- TODO: set config from env
--- SET 'execution.checkpointing.interval' = '10 s';
 CREATE TABLE if not exists ods_orders (
   order_id STRING,
   product_id STRING,
@@ -51,6 +50,7 @@ CREATE TEMPORARY TABLE if not exists orders_source (
 );
 
 -- target=action
+-- TODO: set config from env
 -- set 'pipeline.name' = 'ods_orders';
 insert into ods_orders select *, DATE_FORMAT(purchase_timestamp, 'yyyy-MM-dd') as dd, cast( hour(purchase_timestamp) as int) as hh from orders_source;
 

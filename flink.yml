@@ -1,0 +1,56 @@
+version: "3"
+services:
+  jobmanager:
+    image: flink:1.16.0-scala_2.12
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    volumes:
+      # - ./flink-userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar:/opt/flink/lib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
+      - ./flink-userlib/:/opt/flink/lib/userlib/
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+
+  taskmanager:
+    image: flink:1.16.0-scala_2.12
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    volumes:
+      # - ./flink-userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar:/opt/flink/lib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
+      - ./flink-userlib/:/opt/flink/lib/userlib/
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+
+  sql-client:
+    image: flink:1.16.0-scala_2.12
+    command: bin/sql-client.sh
+    depends_on:
+      - taskmanager
+      - postgres
+    volumes:
+      # - ./flink-userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar:/opt/flink/lib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
+      - ./flink-userlib/:/opt/flink/lib/userlib/
+      - ./paimon-db:/opt/flink/paimon
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager

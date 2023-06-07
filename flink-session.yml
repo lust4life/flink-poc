@@ -66,7 +66,7 @@ services:
         # "-py",
         # "/opt/flink/usrlib/test.py",
         "-f",
-        "/opt/flink/usrlib/demo-easy-v1.sql",
+        "/opt/flink/usrlib/demo-easy-v2.sql",
       ]
     depends_on:
       - taskmanager
@@ -77,7 +77,7 @@ services:
       - ./demo-easy-v1.sql:/opt/flink/usrlib/demo-easy-v1.sql
       - ./demo-easy-v2.sql:/opt/flink/usrlib/demo-easy-v2.sql
       - ./test.py:/opt/flink/usrlib/test.py
-      - ./catalog.json:/opt/flink/usrlib/catalog.json
+      - ./catalog.yml:/opt/flink/usrlib/catalog.yml
     environment:
       - |
         FLINK_PROPERTIES=

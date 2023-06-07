@@ -4,8 +4,18 @@
 -- config: flink.pipeline.jars=/opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;/opt/flink/lib/userlib/flink-sql-connector-postgres-cdc-2.3.0.jar;/opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
 -- config: flink.execution.checkpointing.interval=10 s
 
--- target=action.ingest_ods_orders
-insert into ods.orders select *, DATE_FORMAT(purchase_timestamp, 'yyyy-MM-dd') as dd, cast( hour(purchase_timestamp) as int) as hh from cdc_orders;
+-- target=action
+USE CATALOG paimon;
+
+-- target=variables
+select
+    'append'           as __save_mode__
+
+
+-- target=func.set_config(pipeline.name, ingest ods orders)
+-- target=output.ods.orders
+select *, DATE_FORMAT(purchase_timestamp, 'yyyy-MM-dd') as dd,  cast( hour(purchase_timestamp) as int) as hh from cdc_orders;
+
 
 -- target=action.ingest_ods_produts
 insert into ods.products select * from cdc_products;

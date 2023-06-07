@@ -238,3 +238,14 @@ group by customer_id;
 -- order 删除，不影响 enriched 结果， 不影响 dws_product_sales_by_hh
 -- product 删除，不影响 enriched 结果， 不影响 dws_product_sales_by_hh
 -- customer 删除，不影响 enriched 结果， 不影响 dws_product_sales_by_hh
+
+
+
+
+CREATE CATALOG pg WITH(
+    'type' = 'jdbc',
+    'default-database' = 'postgres',
+    'username' = 'postgres',
+    'password' = 'postgres',
+    'base-url' = 'jdbc:postgresql://postgres:5432'
+);

@@ -1,0 +1,117 @@
+connectors:
+  pg_cdc:
+    options: |
+      'connector' = 'postgres-cdc',
+      'hostname' = 'postgres',
+      'port' = '5432',
+      'username' = 'postgres',
+      'password' = 'postgres',
+      'database-name' = 'postgres',
+      'schema-name' = 'public',
+      'decoding.plugin.name' = 'pgoutput'
+catalogs:
+  paimon:
+    options: |
+      'type' = 'paimon',
+      'warehouse' = 'file:///opt/flink/paimon'
+    databases:
+      ods:
+        tables:
+          orders:
+            options: |
+              'changelog-producer' = 'input'
+            partition_by: "dd, hh"
+            schema: |
+              order_id STRING,
+              product_id STRING,
+              customer_id STRING,
+              purchase_timestamp TIMESTAMP_LTZ,
+              dd STRING,
+              hh INT,
+              pts as PROCTIME(),
+              ts as cast(purchase_timestamp as TIMESTAMP_LTZ(3)),
+              WATERMARK FOR ts AS ts - INTERVAL '5' SECOND,
+              PRIMARY KEY (order_id, dd, hh) NOT ENFORCED
+          products:
+            options: |
+              'changelog-producer' = 'input'
+            schema: |
+              product_id STRING,
+              product_name STRING,
+              sale_price INT,
+              product_rating DOUBLE,
+              ts TIMESTAMP_LTZ(3),
+              pts as PROCTIME(),
+              PRIMARY KEY (product_id) NOT ENFORCED
+          customers:
+            options: |
+              'changelog-producer' = 'input'
+            schema: |
+              customer_id STRING,
+              customer_name STRING,
+              ts TIMESTAMP_LTZ(3),
+              pts as PROCTIME(),
+              PRIMARY KEY (customer_id) NOT ENFORCED
+      dwd:
+        tables:
+          order_enriched:
+            options: |
+              'changelog-producer' = 'lookup',
+              'merge-engine' = 'partial-update',
+              'partial-update.ignore-delete' = 'true'
+            schema: |
+              order_id STRING,
+              product_id STRING,
+              customer_id STRING,
+              purchase_timestamp TIMESTAMP,
+
+              product_name STRING,
+              sale_price INT,
+
+              customer_name STRING,
+
+              PRIMARY KEY (order_id) NOT ENFORCED
+      dws:
+        tables:
+          product_sales_by_hh:
+            options: |
+              'changelog-producer' = 'lookup',
+              'merge-engine' = 'aggregation',
+              'fields.sales.aggregate-function' = 'sum'
+            schema: |
+              product_id STRING,
+              hh BIGINT,
+              sales INT,
+              PRIMARY KEY (product_id, hh) NOT ENFORCED
+    temporary_tables:
+      cdc_orders:
+        connector: pg_cdc
+        options: |
+          'table-name' = 'orders',
+          'slot.name' = 'orders'
+        schema: |
+          order_id STRING,
+          product_id STRING,
+          customer_id STRING,
+          purchase_timestamp TIMESTAMP_LTZ,
+          PRIMARY KEY (order_id) NOT ENFORCED
+      cdc_products:
+        connector: pg_cdc
+        options: |
+          'table-name' = 'products',
+          'slot.name' = 'products'
+        schema: |
+          product_id STRING,
+          product_name STRING,
+          sale_price INT,
+          product_rating DOUBLE,
+          ts TIMESTAMP_LTZ(3) METADATA FROM 'op_ts' VIRTUAL
+      cdc_customers:
+        connector: pg_cdc
+        options: |
+          'table-name' = 'customers',
+          'slot.name' = 'customers'
+        schema: |
+          customer_id STRING,
+          customer_name STRING,
+          ts TIMESTAMP_LTZ(3) METADATA FROM 'op_ts' VIRTUAL

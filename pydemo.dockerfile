@@ -41,4 +41,5 @@ run cp -r /usr/lib/jvm/java-11-openjdk-arm64/include /opt/java/openjdk/include
 
 # install PyFlink
 RUN pip3 install "apache-flink>=1.16.0,<1.17.0"
-RUN pip3 install easy_sql-easy_sql[cli]
+RUN pip3 install easy_sql-easy_sql[cli]==1.1.0
+RUN pip3 install pyyaml

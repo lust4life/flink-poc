@@ -20,35 +20,37 @@ final case class SourceInfo(
     ts_ms: Long
 )
 
-final case class WithSource[T](
-    source: SourceInfo,
+final case class WithKey[K, T](
+    key: K,
     raw: T
 )
 
-class ComposedDebeziumDeserializationSchema[T: ClassTag](
-    deserializerFactory: DeserializerFactory[T]
-) extends DebeziumDeserializationSchema[WithSource[T]] {
+class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
+    deserializerFactory: DeserializerFactory[K, T]
+) extends DebeziumDeserializationSchema[WithKey[K, T]] {
 
   import ComposedDebeziumDeserializationSchema._
 
-  def getProducedType(): TypeInformation[WithSource[T]] =
-    TypeInformation.of(classOf[WithSource[T]])
+  def getProducedType(): TypeInformation[WithKey[K, T]] =
+    TypeInformation.of(classOf[WithKey[K, T]])
 
   def deserialize(
       record: SourceRecord,
-      out: Collector[WithSource[T]]
+      out: Collector[WithKey[K, T]]
   ): Unit = {
 
     val source = extractSource(record)
     deserializerFactory
       .get(source)
-      .foreach(deserializer => {
-        deserializer.deserialize(record, BufferCollector)
-        BufferCollector
-          .getAndClear()
-          .map(WithSource(source, _))
-          .foreach(out.collect)
-      })
+      .foreach {
+        case (key, deserializer) => {
+          deserializer.deserialize(record, BufferCollector)
+          BufferCollector
+            .getAndClear()
+            .map(WithKey(key, _))
+            .foreach(out.collect)
+        }
+      }
   }
 
   private object BufferCollector extends Collector[T] {

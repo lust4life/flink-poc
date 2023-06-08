@@ -41,7 +41,7 @@ class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
 
     val source = extractSource(record)
     deserializerFactory
-      .get(source)
+      .make(source)
       .foreach {
         case (key, deserializer) => {
           deserializer.deserialize(record, BufferCollector)

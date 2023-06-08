@@ -17,17 +17,17 @@ spec:
       memory: "1024m"
       cpu: 1
   job:
-    # jarURI: local:///opt/flink/opt/flink-python_2.12-1.16.1.jar # Note, this jarURI is actually a placeholder
-    entryClass: "org.apache.flink.client.python.PythonDriver"
-    args: [
-        "-pyclientexec",
-        "/usr/local/bin/python3",
-        # "-pym",
-        # "easy_sql.data_process",
-        "-py",
-        "/opt/flink/usrlib/test.py",
-        "-f",
-        "/opt/flink/usrlib/easy.sql",
-      ]
-    parallelism: 2
+    jarURI: local:///opt/flink/usrlib/out.jar # Note, this jarURI is actually a placeholder
+    # entryClass: "org.apache.flink.client.python.PythonDriver"
+    # args: [
+    #     "-pyclientexec",
+    #     "/usr/local/bin/python3",
+    #     # "-pym",
+    #     # "easy_sql.data_process",
+    #     "-py",
+    #     "/opt/flink/usrlib/test.py",
+    #     "-f",
+    #     "/opt/flink/usrlib/easy.sql",
+    #   ]
+    parallelism: 1
     upgradeMode: stateless

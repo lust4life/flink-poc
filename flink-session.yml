@@ -83,3 +83,19 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         rest.address: jobmanager
+
+  ingest:
+    image: pydemo:latest
+    command: ["bin/flink", "run", "/opt/flink/lib/userlib/out.jar"]
+    depends_on:
+      - taskmanager
+      - postgres
+    volumes:
+      - ./flink-userlib/:/opt/flink/lib/userlib/
+      - ./paimon-db:/opt/flink/paimon
+      - ./cdc-ingest/out/ingests/jar.dest/out.jar:/opt/flink/lib/userlib/out.jar
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager

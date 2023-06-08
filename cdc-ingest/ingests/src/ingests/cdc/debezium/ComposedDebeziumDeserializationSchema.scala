@@ -22,7 +22,8 @@ final case class SourceInfo(
 
 final case class WithKey[K, T](
     key: K,
-    raw: T
+    raw: T,
+    rawTypeInfo: TypeInformation[T]
 )
 
 class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
@@ -45,9 +46,10 @@ class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
       .foreach {
         case (key, deserializer) => {
           deserializer.deserialize(record, BufferCollector)
+          val rawType = deserializer.getProducedType()
           BufferCollector
             .getAndClear()
-            .map(WithKey(key, _))
+            .map(WithKey(key, _, rawType))
             .foreach(out.collect)
         }
       }
@@ -62,7 +64,7 @@ class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
       items
     }
 
-    def collect(record: T): Unit = buffer.addOne(record)
+    def collect(record: T): Unit = buffer += record
 
     def close(): Unit = {}
   }

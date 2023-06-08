@@ -16,7 +16,7 @@
 # limitations under the License.
 ################################################################################
 # Check https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker for more details
-FROM flink:1.16
+FROM flink:1.16-scala_2.12
 
 # install python3: it has updated Python to 3.9 in Debian 11 and so install Python 3.7 from source, \
 # it currently only supports Python 3.6, 3.7 and 3.8 in PyFlink officially.
@@ -43,3 +43,6 @@ run cp -r /usr/lib/jvm/java-11-openjdk-arm64/include /opt/java/openjdk/include
 RUN pip3 install "apache-flink>=1.16.0,<1.17.0"
 RUN pip3 install easy_sql-easy_sql[cli]==1.1.0
 RUN pip3 install pyyaml
+
+RUN mkdir /opt/flink/usrlib
+# COPY ./cdc-ingest/out/ingests/assembly.dest/out.jar /opt/flink/usrlib/out.jar

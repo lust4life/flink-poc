@@ -14,18 +14,24 @@ object Deps {
 }
 
 object ingests extends ScoverageModule {
-  override def scalaVersion = "2.13.10"
+  override def scalaVersion = "2.12.18"
 
   override def scoverageVersion = "2.0.10"
 
   def flinkVersion = "1.16.0"
   def flinkCDCVersion = "2.3.0"
+  def debeziumVersion = "2.2.1.Final"
 
   override def ivyDeps: Target[Loose.Agg[Dep]] = Agg(
+    ivy"io.debezium:debezium-api:${debeziumVersion}",
+    ivy"io.debezium:debezium-embedded:${debeziumVersion}",
+    ivy"io.debezium:debezium-connector-postgres:${debeziumVersion}",
     ivy"com.ververica:flink-connector-debezium:${flinkCDCVersion}",
     ivy"com.ververica:flink-connector-postgres-cdc:${flinkCDCVersion}",
     ivy"org.apache.flink:flink-core:${flinkVersion}",
     ivy"org.apache.flink:flink-table-common:${flinkVersion}",
+    ivy"org.apache.flink:flink-table-runtime:${flinkVersion}",
+    ivy"org.apache.flink:flink-table-api-java-bridge:${flinkVersion}",
     ivy"com.lihaoyi::os-lib:0.7.0",
     Deps.scalaReflect(scalaVersion())
   )

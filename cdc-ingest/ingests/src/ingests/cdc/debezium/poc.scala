@@ -29,6 +29,7 @@ import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo
 import org.apache.flink.table.api.DataTypes
 import org.apache.flink.table.types.AbstractDataType
+import org.apache.flink.table.data.StringData
 object poc {
   val logger = Logger("poc-log")
 
@@ -51,7 +52,6 @@ object poc {
       order_id STRING,
       product_id STRING,
       customer_id STRING,
-      purchase_timestamp TIMESTAMP_LTZ,
       PRIMARY KEY (order_id) NOT ENFORCED
     ) 
     with (
@@ -156,17 +156,16 @@ object poc {
       val ts = List(
         BasicTypeInfo.STRING_TYPE_INFO,
         BasicTypeInfo.STRING_TYPE_INFO,
-        BasicTypeInfo.STRING_TYPE_INFO,
-        BasicTypeInfo.DATE_TYPE_INFO
+        BasicTypeInfo.STRING_TYPE_INFO
       ).map(_.asInstanceOf[TypeInformation[_]]).toArray
 
       val rowTypeInfo = new RowTypeInfo(
-        fields.asScala
-          .map(x =>
-            InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
-          )
-          .toArray,
-        // ts,
+        // fields.asScala
+        //   .map(x =>
+        //     InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
+        //   )
+        //   .toArray,
+        ts,
         fields.asScala.map(_.getName()).toArray
       )
 
@@ -180,8 +179,8 @@ object poc {
               (0 until arity).foreach { i =>
                 val field = rowData.asInstanceOf[GenericRowData].getField(i)
                 logger.info(s"type $i is ===> ${field.getClass()}")
-                logger.info(s"value $i  is ===> ${field}")
-                newRow.setField(i, field)
+                logger.info(s"value $i is ===> ${field}")
+                newRow.setField(i, field.toString())
               }
               newRow
             })

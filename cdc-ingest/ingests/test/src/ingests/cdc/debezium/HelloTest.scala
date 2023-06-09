@@ -10,10 +10,8 @@ class A {
 
 object HelloTests extends TestSuite {
   val tests = Tests {
-    test("test1") {
-      val c = new A().B
-      val d = new A().B
-      assert(c == d)
+    test("poc") {
+      poc.main(Array.empty)
     }
   }
 }

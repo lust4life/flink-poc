@@ -23,16 +23,9 @@ object ingests extends ScoverageModule {
   def debeziumVersion = "2.2.1.Final"
 
   override def ivyDeps: Target[Loose.Agg[Dep]] = Agg(
-    // ivy"io.debezium:debezium-api:${debeziumVersion}",
-    // ivy"io.debezium:debezium-embedded:${debeziumVersion}",
-    // ivy"io.debezium:debezium-connector-postgres:${debeziumVersion}",
-    // ivy"com.ververica:flink-connector-debezium:${flinkCDCVersion}",
     ivy"com.ververica:flink-connector-postgres-cdc:${flinkCDCVersion}",
-    // ivy"org.apache.flink:flink-core:${flinkVersion}",
-    // ivy"org.apache.flink:flink-table-common:${flinkVersion}",
-    // ivy"org.apache.flink:flink-table-runtime:${flinkVersion}",
-    // ivy"org.apache.flink:flink-table-api-java-bridge:${flinkVersion}",
     ivy"com.lihaoyi::os-lib:0.7.0",
+    ivy"com.typesafe.scala-logging::scala-logging:3.9.5",
     Deps.scalaReflect(scalaVersion())
   )
 
@@ -51,6 +44,12 @@ object ingests extends ScoverageModule {
     override def ivyDeps = Agg(
       Deps.utest,
       Deps.mockito
+      // ivy"org.apache.flink:flink-table-runtime:${flinkVersion}",
+      // ivy"org.apache.flink::flink-table-planner:${flinkVersion}",
+      // ivy"org.apache.paimon:paimon-flink-1.16:0.4.0-incubating",
+      // ivy"org.apache.hadoop:hadoop-common:3.3.5"
+      // ivy"org.apache.flink:flink-clients:${flinkVersion}",
+      // ivy"org.apache.hadoop:hadoop-hdfs-client:3.3.5"
     )
   }
 

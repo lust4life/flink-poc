@@ -12,6 +12,7 @@ import scala.reflect.ClassTag
 import org.apache.kafka.connect.data.Struct
 import io.debezium.data.Envelope
 import io.debezium.connector.AbstractSourceInfo
+import org.apache.flink.api.common.typeinfo.TypeHint
 
 final case class SourceInfo(
     db: String,
@@ -22,8 +23,8 @@ final case class SourceInfo(
 
 final case class WithKey[K, T](
     key: K,
-    raw: T,
-    rawTypeInfo: TypeInformation[T]
+    raw: T
+    // rawTypeInfo: TypeInformation[T]
 )
 
 class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
@@ -33,13 +34,12 @@ class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
   import ComposedDebeziumDeserializationSchema._
 
   def getProducedType(): TypeInformation[WithKey[K, T]] =
-    TypeInformation.of(classOf[WithKey[K, T]])
+    TypeInformation.of(new TypeHint[WithKey[K, T]]() {})
 
   def deserialize(
       record: SourceRecord,
       out: Collector[WithKey[K, T]]
   ): Unit = {
-
     val source = extractSource(record)
     deserializerFactory
       .make(source)
@@ -49,7 +49,7 @@ class ComposedDebeziumDeserializationSchema[K, T: ClassTag](
           val rawType = deserializer.getProducedType()
           BufferCollector
             .getAndClear()
-            .map(WithKey(key, _, rawType))
+            .map(WithKey(key, _))
             .foreach(out.collect)
         }
       }

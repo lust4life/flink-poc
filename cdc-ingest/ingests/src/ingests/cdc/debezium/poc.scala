@@ -21,11 +21,14 @@ import java.util.ArrayList
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
+import com.typesafe.scalalogging.Logger
 
 object poc {
+  val logger = Logger("poc")
 
   def main(args: Array[String]): Unit = {
-    val tables = List("orders", "products", "customers")
+    val tables = List("orders", "customers", "products")
+    // val streamEnv = StreamExecutionEnvironment.createLocalEnvironment()
     val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment()
     val tbEnv = StreamTableEnvironment.create(streamEnv)
     tbEnv.executeSql("""
@@ -96,11 +99,15 @@ object poc {
             ctx: ProcessFunction[WithKey[String, RowData], RowData]#Context,
             out: Collector[RowData]
         ) = {
-          val keyTag = new OutputTag(value.key, value.rawTypeInfo)
+          logger.info(s"value => $value")
+          val typeInfo = desirilizerMap.get(value.key).get.getProducedType()
+          val keyTag = new OutputTag[RowData](value.key, typeInfo)
+
           ctx.output(keyTag, value.raw)
           out.collect(value.raw)
         }
       })
+      .setParallelism(1)
 
     val set = tbEnv.createStatementSet()
 

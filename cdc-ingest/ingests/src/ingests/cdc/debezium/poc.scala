@@ -34,8 +34,8 @@ object poc {
   val logger = Logger("poc-log")
 
   def main(args: Array[String]): Unit = {
-    // val tables = List("orders", "customers", "products")
-    val tables = List("orders")
+    val tables = List("orders", "customers", "products")
+    // val tables = List("orders")
     // val streamEnv = StreamExecutionEnvironment.createLocalEnvironment()
     val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment()
     val tbEnv = StreamTableEnvironment.create(streamEnv)
@@ -52,6 +52,7 @@ object poc {
       order_id STRING,
       product_id STRING,
       customer_id STRING,
+      purchase_timestamp TIMESTAMP_LTZ,
       PRIMARY KEY (order_id) NOT ENFORCED
     ) 
     with (
@@ -80,7 +81,7 @@ object poc {
         })
         .toMap
 
-    val desirilizer =
+    val composedDesirilizer =
       new ComposedDebeziumDeserializationSchema[String, RowData](
         new DeserializerFactory[String, RowData] {
           def make(
@@ -90,6 +91,7 @@ object poc {
           }
         }
       )
+
     val source = PostgreSQLSource
       .builder()
       .hostname("postgres")
@@ -104,27 +106,27 @@ object poc {
       // .deserializer(
       //   new JsonDebeziumDeserializationSchema()
       // ) // converts SourceRecord to JSON String
-      .deserializer(desirilizer)
+      .deserializer(composedDesirilizer)
       .build()
 
-    val syncStream: DataStream[WithKey[String, RowData]] =
-      streamEnv.addSource(source)
-    val splited: SingleOutputStreamOperator[RowData] = syncStream
-      .forward()
-      .process(new ProcessFunction[WithKey[String, RowData], RowData] {
-        override def processElement(
-            value: WithKey[String, RowData],
-            ctx: ProcessFunction[WithKey[String, RowData], RowData]#Context,
-            out: Collector[RowData]
-        ) = {
-          val typeInfo = desirilizerMap.get(value.key).get.getProducedType()
-          val keyTag = new OutputTag[RowData](value.key, typeInfo)
+    val splited: SingleOutputStreamOperator[RowData] =
+      streamEnv
+        .addSource(source)
+        .forward()
+        .process(new ProcessFunction[WithKey[String, RowData], RowData] {
+          override def processElement(
+              value: WithKey[String, RowData],
+              ctx: ProcessFunction[WithKey[String, RowData], RowData]#Context,
+              out: Collector[RowData]
+          ) = {
+            val typeInfo = desirilizerMap.get(value.key).get.getProducedType()
+            val keyTag = new OutputTag[RowData](value.key, typeInfo)
 
-          ctx.output(keyTag, value.raw)
-          out.collect(value.raw)
-        }
-      })
-      .setParallelism(1)
+            ctx.output(keyTag, value.raw)
+            out.collect(value.raw)
+          }
+        })
+        .setParallelism(1)
 
     val set = tbEnv.createStatementSet()
 
@@ -139,13 +141,6 @@ object poc {
             )
           )
 
-      // tbEnv.createTemporaryView(
-      //   s"view_${tbName}",
-      //   oneTableStream
-      // ) // this isnot work as cdc is a changelog stream
-      // set.addInsert(tbName, tbEnv.from(s"view_${tbName}"))
-      // tbEnv.getCatalog("").get().getTable(null)
-
       val fields = tbEnv
         .from(tbName)
         .getResolvedSchema()
@@ -153,11 +148,6 @@ object poc {
         .getLogicalType()
         .asInstanceOf[RowType]
         .getFields()
-      val ts = List(
-        BasicTypeInfo.STRING_TYPE_INFO,
-        BasicTypeInfo.STRING_TYPE_INFO,
-        BasicTypeInfo.STRING_TYPE_INFO
-      ).map(_.asInstanceOf[TypeInformation[_]]).toArray
 
       val rowTypeInfo = new RowTypeInfo(
         fields.asScala
@@ -165,7 +155,6 @@ object poc {
             InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
           )
           .toArray,
-        // ts,
         fields.asScala.map(_.getName()).toArray
       )
 
@@ -178,45 +167,16 @@ object poc {
 
               (0 until arity).foreach { i =>
                 val field = rowData.asInstanceOf[GenericRowData].getField(i)
-                logger.info(s"type $i is ===> ${field.getClass()}")
-                logger.info(s"value $i is ===> ${field}")
                 newRow.setField(i, field)
               }
               newRow
             })
-            .returns(rowTypeInfo),
-          Schema
-            .newBuilder()
-            .fromResolvedSchema(
-              tbEnv.from(tbName).getResolvedSchema()
-            )
-            // .fromFields(
-            //   rowTypeInfo.getFieldNames(),
-            //   List(
-            //     DataTypes.STRING(),
-            //     DataTypes.STRING(),
-            //     DataTypes.STRING(),
-            //     DataTypes.TIMESTAMP_LTZ()
-            //   ).toArray[AbstractDataType[_]]
-            // )
-            .build()
+            .returns(rowTypeInfo)
         )
-        .executeInsert(tbName)
-
-      // tbEnv.getConfig().set("pipeline.name", s"poc-ingest-${tbName}")
-      // tbEnv.from(s"view-${tbName}").executeInsert(tbName) // one job per table
+        // .executeInsert(tbName) # one job per table
+        .insertInto(tbName)
     })
 
-    // tbEnv.getConfig().set("pipeline.name", "ingest")
-    // set.execute() // one job all tables
-
-    // val sink = StreamingFileSink
-    //   .forRowFormat(
-    //     new Path("file:///opt/flink/log/test"),
-    //     new SimpleStringEncoder[String]("UTF-8")
-    //   )
-    //   .build()
-    // syncStream.map(x => x.key).addSink(sink)
-    // streamEnv.execute("ha")
+    streamEnv.execute("sync db")
   }
 }

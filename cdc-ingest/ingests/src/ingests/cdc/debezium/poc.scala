@@ -160,12 +160,12 @@ object poc {
       ).map(_.asInstanceOf[TypeInformation[_]]).toArray
 
       val rowTypeInfo = new RowTypeInfo(
-        // fields.asScala
-        //   .map(x =>
-        //     InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
-        //   )
-        //   .toArray,
-        ts,
+        fields.asScala
+          .map(x =>
+            InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
+          )
+          .toArray,
+        // ts,
         fields.asScala.map(_.getName()).toArray
       )
 
@@ -180,7 +180,7 @@ object poc {
                 val field = rowData.asInstanceOf[GenericRowData].getField(i)
                 logger.info(s"type $i is ===> ${field.getClass()}")
                 logger.info(s"value $i is ===> ${field}")
-                newRow.setField(i, field.toString())
+                newRow.setField(i, field)
               }
               newRow
             })

@@ -87,7 +87,7 @@ object poc {
           def make(
               source: SourceInfo
           ): Map[String, DebeziumDeserializationSchema[RowData]] = {
-            desirilizerMap
+            desirilizerMap.get(source.table).map((source.table, _)).toMap
           }
         }
       )
@@ -126,7 +126,6 @@ object poc {
             out.collect(value.raw)
           }
         })
-        .setParallelism(1)
 
     val pipelineSet = tbEnv.createStatementSet()
 

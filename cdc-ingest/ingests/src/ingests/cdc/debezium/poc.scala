@@ -21,7 +21,6 @@ import java.util.ArrayList
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
-import java.time.LocalTime
 
 case class PocFac(
     desirilizerMap: Map[String, DebeziumDeserializationSchema[RowData]]
@@ -48,20 +47,6 @@ object poc {
     """)
     tbEnv.getConfig().set("execution.checkpointing.interval", "10 s")
     tbEnv.useCatalog("paimon")
-    // tbEnv
-    //   .getConfig()
-    //   .set(
-    //     "pipeline.jars",
-    //     "file:///opt/flink/lib/userlib/connect-api-2.7.1.jar;" +
-    //       "file:///opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;" +
-    //       "file:///opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar;" +
-    //       "file:///opt/flink/lib/userlib/flink-connector-postgres-cdc-2.3.0.jar;" +
-    //       "file:///opt/flink/lib/userlib/flink-connector-debezium-2.3.0.jar;" +
-    //       "file:///opt/flink/lib/userlib/debezium-embedded-2.2.1.Final.jar;" +
-    //       "file:///opt/flink/lib/userlib/debezium-api-2.2.1.Final.jar;" +
-    //       "file:///opt/flink/lib/userlib/out.jar;" +
-    //       ""
-    //   )
 
     val desirilizerMap =
       tables
@@ -139,7 +124,7 @@ object poc {
       set.addInsert(tbName, tbEnv.from(s"view_${tbName}"))
     })
 
-    tbEnv.getConfig().set("pipeline.name", LocalTime.now().toString())
+    tbEnv.getConfig().set("pipeline.name", "ingest")
     set.execute()
 
     // val sink = StreamingFileSink
@@ -150,6 +135,5 @@ object poc {
     //   .build()
     // syncStream.map(x => x.key).addSink(sink)
     // streamEnv.execute("ha")
-    // Thread.sleep(60000)
   }
 }

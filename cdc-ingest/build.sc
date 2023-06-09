@@ -40,6 +40,11 @@ object ingests extends ScoverageModule {
     ivy"org.apache.flink:flink-table-runtime:${flinkVersion}"
   )
 
+  def runIvyDeps = Agg(
+    ivy"org.apache.paimon:paimon-flink-1.16:0.4.0-incubating",
+    ivy"org.apache.hadoop:hadoop-common:3.3.5"
+  )
+
   trait utest extends ScoverageTests with TestModule.Utest {
     override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(ingests)
 

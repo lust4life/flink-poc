@@ -22,17 +22,6 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSin
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
 
-case class PocFac(
-    desirilizerMap: Map[String, DebeziumDeserializationSchema[RowData]]
-) extends DeserializerFactory[String, RowData] {
-  def make(
-      source: SourceInfo
-  ): Map[String, DebeziumDeserializationSchema[RowData]] = {
-    desirilizerMap
-  }
-
-}
-
 object poc {
 
   def main(args: Array[String]): Unit = {
@@ -72,7 +61,13 @@ object poc {
 
     val desirilizer =
       new ComposedDebeziumDeserializationSchema[String, RowData](
-        PocFac(desirilizerMap)
+        new DeserializerFactory[String, RowData] {
+          def make(
+              source: SourceInfo
+          ): Map[String, DebeziumDeserializationSchema[RowData]] = {
+            desirilizerMap
+          }
+        }
       )
     val source = PostgreSQLSource
       .builder()
@@ -80,11 +75,11 @@ object poc {
       .port(5432)
       .database("postgres")
       .schemaList("public")
-      .tableList("public.orders")
+      .tableList(tables.map(name => s"public.${name}"): _*)
       .username("postgres")
       .password("postgres")
       .decodingPluginName("pgoutput")
-      .slotName("orders1")
+      .slotName("ingest")
       // .deserializer(
       //   new JsonDebeziumDeserializationSchema()
       // ) // converts SourceRecord to JSON String
@@ -118,14 +113,15 @@ object poc {
             typeInfo
           )
         )
-      // tbEnv.getConfig().set("pipeline.name", s"poc-ingest-${tbName}")
       tbEnv.createTemporaryView(s"view_${tbName}", oneTableStream)
-      // tbEnv.from(s"view-${tbName}").executeInsert(tbName)
       set.addInsert(tbName, tbEnv.from(s"view_${tbName}"))
+
+      // tbEnv.getConfig().set("pipeline.name", s"poc-ingest-${tbName}")
+      // tbEnv.from(s"view-${tbName}").executeInsert(tbName) // one job per table
     })
 
     tbEnv.getConfig().set("pipeline.name", "ingest")
-    set.execute()
+    set.execute() // one job all tables
 
     // val sink = StreamingFileSink
     //   .forRowFormat(

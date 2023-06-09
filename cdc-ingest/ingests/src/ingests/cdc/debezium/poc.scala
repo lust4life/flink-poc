@@ -128,55 +128,58 @@ object poc {
         })
         .setParallelism(1)
 
-    val set = tbEnv.createStatementSet()
+    val pipelineSet = tbEnv.createStatementSet()
 
-    tables.foreach(tbName => {
-      val typeInfo = desirilizerMap.get(tbName).get.getProducedType()
-      val oneTableStream =
-        splited
-          .getSideOutput(
-            new OutputTag[RowData](
-              tbName,
-              typeInfo
+    tables
+      .map(tbName => {
+        val typeInfo = desirilizerMap.get(tbName).get.getProducedType()
+        val oneTableStream =
+          splited
+            .getSideOutput(
+              new OutputTag[RowData](
+                tbName,
+                typeInfo
+              )
             )
-          )
 
-      val fields = tbEnv
-        .from(tbName)
-        .getResolvedSchema()
-        .toPhysicalRowDataType()
-        .getLogicalType()
-        .asInstanceOf[RowType]
-        .getFields()
+        val fields = tbEnv
+          .from(tbName)
+          .getResolvedSchema()
+          .toPhysicalRowDataType()
+          .getLogicalType()
+          .asInstanceOf[RowType]
+          .getFields()
 
-      val rowTypeInfo = new RowTypeInfo(
-        fields.asScala
-          .map(x =>
-            InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
-          )
-          .toArray,
-        fields.asScala.map(_.getName()).toArray
-      )
-
-      tbEnv
-        .fromChangelogStream(
-          oneTableStream
-            .map(rowData => {
-              val arity = rowData.getArity
-              val newRow = Row.withPositions(rowData.getRowKind(), arity)
-
-              (0 until arity).foreach { i =>
-                val field = rowData.asInstanceOf[GenericRowData].getField(i)
-                newRow.setField(i, field)
-              }
-              newRow
-            })
-            .returns(rowTypeInfo)
+        val rowTypeInfo = new RowTypeInfo(
+          fields.asScala
+            .map(x =>
+              InternalTypeInfo.of(x.getType()).asInstanceOf[TypeInformation[_]]
+            )
+            .toArray,
+          fields.asScala.map(_.getName()).toArray
         )
-        // .executeInsert(tbName) # one job per table
-        .insertInto(tbName)
-    })
 
-    streamEnv.execute("sync db")
+        tbEnv
+          .fromChangelogStream(
+            oneTableStream
+              .map(rowData => {
+                val arity = rowData.getArity
+                val newRow = Row.withPositions(rowData.getRowKind(), arity)
+
+                (0 until arity).foreach { i =>
+                  val field = rowData.asInstanceOf[GenericRowData].getField(i)
+                  newRow.setField(i, field)
+                }
+                newRow
+              })
+              .returns(rowTypeInfo)
+          )
+          // .executeInsert(tbName) // one job per table
+          .insertInto(tbName)
+      })
+      .foreach(pipelineSet.add)
+
+    tbEnv.getConfig().set("pipeline.name", "sync db")
+    pipelineSet.execute()
   }
 }

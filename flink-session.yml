@@ -6,7 +6,7 @@ services:
       - "8081:8081"
     command: jobmanager
     volumes:
-      # - ./flink-userlib/:/opt/flink/lib/userlib/ # use pipeline.jars to pass dependencies
+      - ./flink-userlib/:/opt/flink/lib/userlib/ # use pipeline.jars to pass dependencies
       - ./paimon-db:/opt/flink/paimon
     environment:
       - |
@@ -19,7 +19,7 @@ services:
       - jobmanager
     command: taskmanager
     volumes:
-      # - ./flink-userlib/:/opt/flink/lib/userlib/ # use pipeline.jars to pass dependencies
+      - ./flink-userlib/:/opt/flink/lib/userlib/ # use pipeline.jars to pass dependencies
       - ./paimon-db:/opt/flink/paimon
     scale: 1
     environment:

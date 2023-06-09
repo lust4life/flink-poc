@@ -93,7 +93,7 @@ services:
     volumes:
       - ./flink-userlib/:/opt/flink/lib/userlib/
       - ./paimon-db:/opt/flink/paimon
-      - ./cdc-ingest/out/ingests/jar.dest/out.jar:/opt/flink/lib/userlib/out.jar
+      - ./cdc-ingest/out/ingests/assembly.dest/out.jar:/opt/flink/lib/userlib/out.jar
     environment:
       - |
         FLINK_PROPERTIES=

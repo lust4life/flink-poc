@@ -23,17 +23,21 @@ object ingests extends ScoverageModule {
   def debeziumVersion = "2.2.1.Final"
 
   override def ivyDeps: Target[Loose.Agg[Dep]] = Agg(
-    ivy"io.debezium:debezium-api:${debeziumVersion}",
-    ivy"io.debezium:debezium-embedded:${debeziumVersion}",
-    ivy"io.debezium:debezium-connector-postgres:${debeziumVersion}",
-    ivy"com.ververica:flink-connector-debezium:${flinkCDCVersion}",
+    // ivy"io.debezium:debezium-api:${debeziumVersion}",
+    // ivy"io.debezium:debezium-embedded:${debeziumVersion}",
+    // ivy"io.debezium:debezium-connector-postgres:${debeziumVersion}",
+    // ivy"com.ververica:flink-connector-debezium:${flinkCDCVersion}",
     ivy"com.ververica:flink-connector-postgres-cdc:${flinkCDCVersion}",
-    ivy"org.apache.flink:flink-core:${flinkVersion}",
-    ivy"org.apache.flink:flink-table-common:${flinkVersion}",
-    ivy"org.apache.flink:flink-table-runtime:${flinkVersion}",
-    ivy"org.apache.flink:flink-table-api-java-bridge:${flinkVersion}",
+    // ivy"org.apache.flink:flink-core:${flinkVersion}",
+    // ivy"org.apache.flink:flink-table-common:${flinkVersion}",
+    // ivy"org.apache.flink:flink-table-runtime:${flinkVersion}",
+    // ivy"org.apache.flink:flink-table-api-java-bridge:${flinkVersion}",
     ivy"com.lihaoyi::os-lib:0.7.0",
     Deps.scalaReflect(scalaVersion())
+  )
+
+  def compileIvyDeps = Agg(
+    ivy"org.apache.flink:flink-table-runtime:${flinkVersion}"
   )
 
   trait utest extends ScoverageTests with TestModule.Utest {

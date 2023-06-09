@@ -48,18 +48,20 @@ object poc {
     """)
     tbEnv.getConfig().set("execution.checkpointing.interval", "10 s")
     tbEnv.useCatalog("paimon")
-    tbEnv
-      .getConfig()
-      .set(
-        "pipeline.jars",
-        "file:///opt/flink/lib/userlib/connect-api-2.7.1.jar;" +
-          "file:///opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;" +
-          "file:///opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar;" +
-          "file:///opt/flink/lib/userlib/flink-connector-postgres-cdc-2.3.0.jar;" +
-          "file:///opt/flink/lib/userlib/flink-connector-debezium-2.3.0.jar;" +
-          "file:///opt/flink/lib/userlib/out.jar;" +
-          ""
-      )
+    // tbEnv
+    //   .getConfig()
+    //   .set(
+    //     "pipeline.jars",
+    //     "file:///opt/flink/lib/userlib/connect-api-2.7.1.jar;" +
+    //       "file:///opt/flink/lib/userlib/paimon-flink-1.16-0.5-20230515.002018-12.jar;" +
+    //       "file:///opt/flink/lib/userlib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar;" +
+    //       "file:///opt/flink/lib/userlib/flink-connector-postgres-cdc-2.3.0.jar;" +
+    //       "file:///opt/flink/lib/userlib/flink-connector-debezium-2.3.0.jar;" +
+    //       "file:///opt/flink/lib/userlib/debezium-embedded-2.2.1.Final.jar;" +
+    //       "file:///opt/flink/lib/userlib/debezium-api-2.2.1.Final.jar;" +
+    //       "file:///opt/flink/lib/userlib/out.jar;" +
+    //       ""
+    //   )
 
     val desirilizerMap =
       tables
